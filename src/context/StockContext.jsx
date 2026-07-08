@@ -1,7 +1,9 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
+import { generateProductRef, formatDate, calculateStats, validateProduct, validateMovement } from '../utils/index.js';
 
 const StockContext = createContext(null);
 
+// Données initiales de démonstration
 const initialProducts = [
   { id: 1, ref: 'PRD-001', name: 'MacBook Pro M2', category: 'Informatique', quantity: 12, minStock: 5, price: 19999, supplier: 'Apple Inc.' },
   { id: 2, ref: 'PRD-002', name: 'Souris Logitech MX Master', category: 'Périphériques', quantity: 3, minStock: 10, price: 899, supplier: 'Logitech' },
@@ -19,59 +21,108 @@ const initialMovements = [
   { id: 5, date: '2026-07-04 14:20', productId: 6, productName: 'Câble USB-C 2m', type: 'OUT', quantity: 8, note: 'Vente client #C451', by: 'Yassir K.' },
 ];
 
+/**
+ * Provider pour la gestion centralisée du stock
+ */
 export function StockProvider({ children }) {
   const [products, setProducts] = useState(initialProducts);
   const [movements, setMovements] = useState(initialMovements);
   const [nextProductId, setNextProductId] = useState(7);
   const [nextMovementId, setNextMovementId] = useState(6);
 
-  const addProduct = (product) => {
-    const newProduct = { ...product, id: nextProductId, ref: `PRD-00${nextProductId}` };
+  // Ajouter un produit avec validation
+  const addProduct = useCallback((product) => {
+    const validation = validateProduct(product);
+    if (!validation.isValid) {
+      throw new Error(Object.values(validation.errors)[0]);
+    }
+
+    const newProduct = {
+      ...product,
+      id: nextProductId,
+      ref: generateProductRef(nextProductId),
+      quantity: Number(product.quantity),
+      minStock: Number(product.minStock),
+      price: Number(product.price)
+    };
     setProducts(prev => [...prev, newProduct]);
     setNextProductId(prev => prev + 1);
-  };
+    return newProduct;
+  }, [nextProductId]);
 
-  const editProduct = (id, updated) => {
+  // Éditer un produit existant
+  const editProduct = useCallback((id, updated) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updated } : p));
-  };
+  }, []);
 
-  const deleteProduct = (id) => {
+  // Supprimer un produit
+  const deleteProduct = useCallback((id) => {
     setProducts(prev => prev.filter(p => p.id !== id));
-  };
+    setMovements(prev => prev.filter(m => m.productId !== id));
+  }, []);
 
-  const addMovement = (movement) => {
+  // Ajouter un mouvement (entrée/sortie de stock)
+  const addMovement = useCallback((movement) => {
+    const validation = validateMovement(movement);
+    if (!validation.isValid) {
+      throw new Error(Object.values(validation.errors)[0]);
+    }
+
     const product = products.find(p => p.id === movement.productId);
-    if (!product) return;
+    if (!product) {
+      throw new Error('Produit non trouvé');
+    }
 
+    // Calculer la nouvelle quantité
     const newQty = movement.type === 'IN'
-      ? product.quantity + movement.quantity
-      : Math.max(0, product.quantity - movement.quantity);
+      ? product.quantity + Number(movement.quantity)
+      : Math.max(0, product.quantity - Number(movement.quantity));
 
+    // Mettre à jour la quantité du produit
     editProduct(movement.productId, { quantity: newQty });
 
+    // Créer le mouvement
     const newMov = {
       ...movement,
       id: nextMovementId,
       productName: product.name,
-      date: new Date().toLocaleString('fr-FR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-      by: 'Admin',
+      quantity: Number(movement.quantity),
+      date: formatDate(new Date()),
+      by: 'Admin'
     };
+
     setMovements(prev => [newMov, ...prev]);
     setNextMovementId(prev => prev + 1);
-  };
+    return newMov;
+  }, [products, editProduct, nextMovementId]);
 
-  const stats = {
-    totalProducts: products.length,
-    totalValue: products.reduce((sum, p) => sum + p.price * p.quantity, 0),
-    outOfStock: products.filter(p => p.quantity === 0).length,
-    lowStock: products.filter(p => p.quantity > 0 && p.quantity < p.minStock).length,
+  // Calculer les statistiques
+  const stats = calculateStats(products);
+
+  const value = {
+    products,
+    movements,
+    addProduct,
+    editProduct,
+    deleteProduct,
+    addMovement,
+    stats
   };
 
   return (
-    <StockContext.Provider value={{ products, movements, addProduct, editProduct, deleteProduct, addMovement, stats }}>
+    <StockContext.Provider value={value}>
       {children}
     </StockContext.Provider>
   );
 }
 
-export const useStock = () => useContext(StockContext);
+/**
+ * Hook pour accéder au contexte du stock
+ */
+export const useStock = () => {
+  const context = useContext(StockContext);
+  if (!context) {
+    throw new Error('useStock doit être utilisé à l\'intérieur de StockProvider');
+  }
+  return context;
+};

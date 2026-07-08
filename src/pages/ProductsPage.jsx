@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useStock } from '../context/StockContext';
 import { Plus, Search, Edit2, Trash2, X, AlertTriangle, PackageX } from 'lucide-react';
-
-const emptyForm = { name: '', category: '', quantity: 0, minStock: 5, price: 0, supplier: '' };
-const CATEGORIES = ['Informatique', 'Périphériques', 'Moniteurs', 'Mobile', 'Accessoires', 'Réseau', 'Autre'];
+import { PRODUCT_CATEGORIES, EMPTY_PRODUCT_FORM, STOCK_STATUS_INFO } from '../constants/index.js';
+import { getStockStatus, formatPrice } from '../utils/index.js';
 
 export default function ProductsPage() {
   const { products, addProduct, editProduct, deleteProduct } = useStock();
@@ -11,8 +10,9 @@ export default function ProductsPage() {
   const [filterCat, setFilterCat] = useState('Tous');
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(EMPTY_PRODUCT_FORM);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [error, setError] = useState(null);
 
   const filtered = products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.ref.toLowerCase().includes(search.toLowerCase());
@@ -20,24 +20,45 @@ export default function ProductsPage() {
     return matchSearch && matchCat;
   });
 
-  const openAdd = () => { setEditing(null); setForm(emptyForm); setShowModal(true); };
-  const openEdit = (p) => { setEditing(p.id); setForm({ name: p.name, category: p.category, quantity: p.quantity, minStock: p.minStock, price: p.price, supplier: p.supplier }); setShowModal(true); };
-  const closeModal = () => { setShowModal(false); setEditing(null); };
+  const openAdd = () => { 
+    setEditing(null); 
+    setForm(EMPTY_PRODUCT_FORM); 
+    setShowModal(true);
+    setError(null);
+  };
+  
+  const openEdit = (p) => { 
+    setEditing(p.id); 
+    setForm({ name: p.name, category: p.category, quantity: p.quantity, minStock: p.minStock, price: p.price, supplier: p.supplier }); 
+    setShowModal(true);
+    setError(null);
+  };
+  
+  const closeModal = () => { 
+    setShowModal(false); 
+    setEditing(null);
+    setError(null);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editing) {
-      editProduct(editing, { ...form, quantity: Number(form.quantity), minStock: Number(form.minStock), price: Number(form.price) });
-    } else {
-      addProduct({ ...form, quantity: Number(form.quantity), minStock: Number(form.minStock), price: Number(form.price) });
+    setError(null);
+    
+    try {
+      if (editing) {
+        editProduct(editing, { ...form, quantity: Number(form.quantity), minStock: Number(form.minStock), price: Number(form.price) });
+      } else {
+        addProduct({ ...form, quantity: Number(form.quantity), minStock: Number(form.minStock), price: Number(form.price) });
+      }
+      closeModal();
+    } catch (err) {
+      setError(err.message);
     }
-    closeModal();
   };
 
-  const getStatus = (p) => {
-    if (p.quantity === 0) return { label: 'Rupture', color: 'bg-red-100 text-red-700' };
-    if (p.quantity < p.minStock) return { label: 'Stock Bas', color: 'bg-amber-100 text-amber-700' };
-    return { label: 'Disponible', color: 'bg-emerald-100 text-emerald-700' };
+  const getStatusDisplay = (p) => {
+    const status = getStockStatus(p);
+    return STOCK_STATUS_INFO[status];
   };
 
   return (
@@ -61,7 +82,7 @@ export default function ProductsPage() {
         </div>
         <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 cursor-pointer">
           <option value="Tous">Toutes catégories</option>
-          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          {PRODUCT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
 
@@ -87,7 +108,7 @@ export default function ProductsPage() {
                   <p>Aucun produit trouvé</p>
                 </td></tr>
               ) : filtered.map(p => {
-                const status = getStatus(p);
+                const statusDisplay = getStatusDisplay(p);
                 return (
                   <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-mono text-xs text-slate-400">{p.ref}</td>
@@ -100,9 +121,9 @@ export default function ProductsPage() {
                       <span className={`font-bold ${p.quantity === 0 ? 'text-red-600' : p.quantity < p.minStock ? 'text-amber-600' : 'text-slate-800'}`}>{p.quantity}</span>
                       {p.quantity < p.minStock && p.quantity > 0 && <AlertTriangle size={12} className="inline ml-1 text-amber-500" />}
                     </td>
-                    <td className="px-6 py-4 text-right font-semibold text-slate-800">{p.price.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right font-semibold text-slate-800">{formatPrice(p.price)}</td>
                     <td className="px-6 py-4 text-center">
-                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${status.color}`}>{status.label}</span>
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${statusDisplay.color}`}>{statusDisplay.label}</span>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
@@ -127,6 +148,11 @@ export default function ProductsPage() {
               <button onClick={closeModal} className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label className="block text-xs font-semibold text-slate-500 mb-1.5">Nom du Produit *</label>
@@ -136,7 +162,7 @@ export default function ProductsPage() {
                   <label className="block text-xs font-semibold text-slate-500 mb-1.5">Catégorie *</label>
                   <select required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 cursor-pointer" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
                     <option value="">-- Choisir --</option>
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    {PRODUCT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
