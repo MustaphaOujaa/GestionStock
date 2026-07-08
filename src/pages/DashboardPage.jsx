@@ -4,15 +4,49 @@ import { Package, TrendingUp, TrendingDown, AlertTriangle, BarChart2, ArrowUpCir
 export default function DashboardPage({ setActiveTab }) {
   const { stats, movements, products } = useStock();
 
+  const quickActions = [
+    { id: 'products', icon: Package, title: 'Catalogue', subtitle: 'Gérer les produits', target: 'products' },
+    { id: 'movements', icon: ArrowDownCircle, title: 'Mouvements', subtitle: 'Voir les entrées / sorties', target: 'movements' },
+    { id: 'stock', icon: TrendingUp, title: 'Statistiques', subtitle: 'Analyser le stock', target: 'dashboard' }
+  ];
+
   const recentMovements = movements.slice(0, 5);
   const lowStockItems = products.filter(p => p.quantity > 0 && p.quantity < p.minStock);
   const outOfStock = products.filter(p => p.quantity === 0);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-slate-800">Tableau de Bord</h2>
-        <p className="text-sm text-slate-400">{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+      <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">Tableau de Bord</h2>
+          <p className="text-sm text-slate-400 mt-1">{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+        </div>
+      </div>
+
+      {/* Quick Action Squares */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        {quickActions.map(action => {
+          const Icon = action.icon;
+          return (
+            <button
+              key={action.id}
+              type="button"
+              onClick={() => setActiveTab(action.target)}
+              className="group bg-white rounded-3xl border border-slate-100 shadow-sm p-6 aspect-square flex flex-col justify-between text-left hover:shadow-lg transition-all"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{action.subtitle}</p>
+                  <h3 className="mt-3 text-2xl font-bold text-slate-800 leading-tight">{action.title}</h3>
+                </div>
+                <div className="w-14 h-14 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm">
+                  <Icon size={24} />
+                </div>
+              </div>
+              <span className="mt-4 text-xs font-semibold text-blue-600 opacity-80 group-hover:opacity-100 transition-opacity">Ouvrir maintenant</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* KPI Cards */}
@@ -25,14 +59,18 @@ export default function DashboardPage({ setActiveTab }) {
         ].map((card, i) => {
           const Icon = card.icon;
           return (
-            <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex items-start gap-4 hover:shadow-md transition-shadow">
-              <div className={`w-12 h-12 rounded-xl ${card.bg} flex items-center justify-center shrink-0`}>
-                <Icon size={22} className={card.text} />
+            <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between min-h-[180px] hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{card.label}</p>
+                </div>
+                <div className={`w-14 h-14 rounded-3xl ${card.bg} flex items-center justify-center shrink-0`}>
+                  <Icon size={24} className={card.text} />
+                </div>
               </div>
               <div>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">{card.label}</p>
-                <p className="text-2xl font-bold text-slate-800">{card.value}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{card.sub}</p>
+                <p className="text-3xl font-bold text-slate-800 mt-6">{card.value}</p>
+                <p className="text-xs text-slate-400 mt-2">{card.sub}</p>
               </div>
             </div>
           );
