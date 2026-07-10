@@ -42,6 +42,13 @@ StockPro est une application React/Vite pour suivre un catalogue produits, contr
 - Centre de notifications pour les alertes stock
 - Accès rapide vers les zones concernées
 
+🤖 **Assistant IA Local**
+- Score santé du stock calculé automatiquement
+- Recommandations de réapprovisionnement par priorité
+- Estimation du budget de commande recommandé
+- Chat intelligent basé sur les données locales du stock
+- Export CSV du plan d'achat proposé par l'IA
+
 ⚙️ **Paramètres**
 - Personnalisation du nom de l'espace et du gestionnaire
 - Choix de la devise d'affichage
@@ -124,7 +131,13 @@ src/
 - Filtrer par type de mouvement
 - Exporter les données pour analyse
 
-### 4. Paramètres
+### 4. Assistant IA
+- Demander quoi commander en priorité
+- Identifier les ruptures et stocks faibles
+- Obtenir une synthèse financière du stock
+- Exporter le plan de réapprovisionnement recommandé
+
+### 5. Paramètres
 - Personnaliser le profil de l'application
 - Modifier la devise affichée dans les indicateurs
 - Gérer les options de sauvegarde locale et d'alertes
