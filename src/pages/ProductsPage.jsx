@@ -5,7 +5,7 @@ import { PRODUCT_CATEGORIES, EMPTY_PRODUCT_FORM, STOCK_STATUS_INFO } from '../co
 import { getStockStatus, formatPrice, sortProducts, exportRowsToCsv } from '../utils/index.js';
 
 export default function ProductsPage() {
-  const { products, addProduct, editProduct, deleteProduct } = useStock();
+  const { products, settings, addProduct, editProduct, deleteProduct } = useStock();
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('Tous');
   const [showModal, setShowModal] = useState(false);
@@ -157,7 +157,7 @@ export default function ProductsPage() {
                       <span className={`font-bold ${p.quantity === 0 ? 'text-red-600' : p.quantity < p.minStock ? 'text-amber-600' : 'text-slate-800'}`}>{p.quantity}</span>
                       {p.quantity < p.minStock && p.quantity > 0 && <AlertTriangle size={12} className="inline ml-1 text-amber-500" />}
                     </td>
-                    <td className="px-6 py-4 text-right font-semibold text-slate-800">{formatPrice(p.price)}</td>
+                    <td className="px-6 py-4 text-right font-semibold text-slate-800">{formatPrice(p.price, settings.currency)}</td>
                     <td className="px-6 py-4 text-center">
                       <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${statusDisplay.color}`}>{statusDisplay.label}</span>
                     </td>

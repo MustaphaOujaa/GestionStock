@@ -1,8 +1,9 @@
 import { useStock } from '../hooks/useStock.js';
 import { Package, TrendingUp, TrendingDown, AlertTriangle, BarChart2, ArrowUpCircle, ArrowDownCircle, Layers3 } from 'lucide-react';
+import { formatPrice } from '../utils/index.js';
 
 export default function DashboardPage({ setActiveTab }) {
-  const { stats, movements, products } = useStock();
+  const { stats, movements, products, settings } = useStock();
 
   const quickActions = [
     { id: 'products', icon: Package, title: 'Catalogue', subtitle: 'Gérer les produits', target: 'products' },
@@ -63,7 +64,7 @@ export default function DashboardPage({ setActiveTab }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
         {[
           { icon: Package, label: 'Total Produits', value: stats.totalProducts, sub: 'articles référencés', color: 'blue', bg: 'bg-blue-100', text: 'text-blue-600' },
-          { icon: BarChart2, label: 'Valeur du Stock', value: `${stats.totalValue.toLocaleString()} DH`, sub: 'valeur estimée', color: 'violet', bg: 'bg-violet-100', text: 'text-violet-600' },
+          { icon: BarChart2, label: 'Valeur du Stock', value: formatPrice(stats.totalValue, settings.currency), sub: 'valeur estimée', color: 'violet', bg: 'bg-violet-100', text: 'text-violet-600' },
           { icon: AlertTriangle, label: 'Stock Faible', value: stats.lowStock, sub: 'sous le seuil', color: 'amber', bg: 'bg-amber-100', text: 'text-amber-600' },
           { icon: TrendingDown, label: 'Rupture de Stock', value: stats.outOfStock, sub: 'articles épuisés', color: 'rose', bg: 'bg-rose-100', text: 'text-rose-600' },
         ].map((card, i) => {

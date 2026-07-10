@@ -37,6 +37,17 @@ StockPro est une application React/Vite pour suivre un catalogue produits, contr
 - Restauration des données au prochain chargement
 - Réinitialisation rapide vers les données de démonstration
 
+🔎 **Recherche & Alertes**
+- Recherche globale depuis l'en-tête (produits et mouvements)
+- Centre de notifications pour les alertes stock
+- Accès rapide vers les zones concernées
+
+⚙️ **Paramètres**
+- Personnalisation du nom de l'espace et du gestionnaire
+- Choix de la devise d'affichage
+- Activation/désactivation du résumé des alertes
+- Contrôle de la sauvegarde locale automatique
+
 🎨 **Interface Moderne**
 - Design responsive et mobile-first
 - Navigation intuitive avec sidebar
@@ -112,6 +123,11 @@ src/
 - Consulter l'historique complet
 - Filtrer par type de mouvement
 - Exporter les données pour analyse
+
+### 4. Paramètres
+- Personnaliser le profil de l'application
+- Modifier la devise affichée dans les indicateurs
+- Gérer les options de sauvegarde locale et d'alertes
 
 ## 🔧 Scripts Disponibles
 

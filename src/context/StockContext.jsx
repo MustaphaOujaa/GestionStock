@@ -4,6 +4,15 @@ import { generateProductRef, formatDate, calculateStats, validateProduct, valida
 
 const STORAGE_KEY = 'gestionstock:data:v1';
 
+const defaultSettings = {
+  companyName: 'StockPro',
+  managerName: 'Admin User',
+  managerInitials: 'AD',
+  currency: 'MAD',
+  lowStockDigest: true,
+  autoSave: true
+};
+
 // Données initiales de démonstration
 const initialProducts = [
   { id: 1, ref: 'PRD-001', name: 'MacBook Pro M2', category: 'Informatique', quantity: 12, minStock: 5, price: 19999, supplier: 'Apple Inc.' },
@@ -24,23 +33,27 @@ const initialMovements = [
 
 function getInitialState() {
   if (typeof window === 'undefined') {
-    return { products: initialProducts, movements: initialMovements };
+    return { products: initialProducts, movements: initialMovements, settings: defaultSettings };
   }
 
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (!stored) {
-      return { products: initialProducts, movements: initialMovements };
+      return { products: initialProducts, movements: initialMovements, settings: defaultSettings };
     }
 
     const parsed = JSON.parse(stored);
     if (!Array.isArray(parsed.products) || !Array.isArray(parsed.movements)) {
-      return { products: initialProducts, movements: initialMovements };
+      return { products: initialProducts, movements: initialMovements, settings: defaultSettings };
     }
 
-    return parsed;
+    return {
+      products: parsed.products,
+      movements: parsed.movements,
+      settings: { ...defaultSettings, ...parsed.settings }
+    };
   } catch {
-    return { products: initialProducts, movements: initialMovements };
+    return { products: initialProducts, movements: initialMovements, settings: defaultSettings };
   }
 }
 
@@ -51,12 +64,18 @@ export function StockProvider({ children }) {
   const [initialState] = useState(getInitialState);
   const [products, setProducts] = useState(initialState.products);
   const [movements, setMovements] = useState(initialState.movements);
+  const [settings, setSettings] = useState(initialState.settings);
   const [nextProductId, setNextProductId] = useState(() => Math.max(0, ...initialState.products.map(p => p.id)) + 1);
   const [nextMovementId, setNextMovementId] = useState(() => Math.max(0, ...initialState.movements.map(m => m.id)) + 1);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ products, movements }));
-  }, [products, movements]);
+    const previous = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '{}');
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      products: settings.autoSave ? products : (previous.products || products),
+      movements: settings.autoSave ? movements : (previous.movements || movements),
+      settings
+    }));
+  }, [products, movements, settings]);
 
   // Ajouter un produit avec validation
   const addProduct = useCallback((product) => {
@@ -146,18 +165,25 @@ export function StockProvider({ children }) {
   const resetDemoData = useCallback(() => {
     setProducts(initialProducts);
     setMovements(initialMovements);
+    setSettings(defaultSettings);
     setNextProductId(7);
     setNextMovementId(6);
+  }, []);
+
+  const updateSettings = useCallback((updates) => {
+    setSettings(prev => ({ ...prev, ...updates }));
   }, []);
 
   const value = {
     products,
     movements,
+    settings,
     addProduct,
     editProduct,
     deleteProduct,
     addMovement,
     resetDemoData,
+    updateSettings,
     stats
   };
 

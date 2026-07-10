@@ -111,12 +111,13 @@ export function formatDate(date) {
 /**
  * Formate un prix pour l'affichage
  * @param {number} price - Prix à formater
- * @returns {string} Prix formaté en MAD
+ * @param {string} currency - Devise ISO à utiliser
+ * @returns {string} Prix formaté
  */
-export function formatPrice(price) {
+export function formatPrice(price, currency = 'MAD') {
   return new Intl.NumberFormat('fr-MA', {
     style: 'currency',
-    currency: 'MAD',
+    currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(price);
