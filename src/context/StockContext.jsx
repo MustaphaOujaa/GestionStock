@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { generateProductRef, formatDate, calculateStats, validateProduct, validateMovement } from '../utils/index.js';
 
 const StockContext = createContext(null);
+const STORAGE_KEY = 'gestionstock:data:v1';
 
 // Données initiales de démonstration
 const initialProducts = [
@@ -21,14 +22,41 @@ const initialMovements = [
   { id: 5, date: '2026-07-04 14:20', productId: 6, productName: 'Câble USB-C 2m', type: 'OUT', quantity: 8, note: 'Vente client #C451', by: 'Yassir K.' },
 ];
 
+function getInitialState() {
+  if (typeof window === 'undefined') {
+    return { products: initialProducts, movements: initialMovements };
+  }
+
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return { products: initialProducts, movements: initialMovements };
+    }
+
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed.products) || !Array.isArray(parsed.movements)) {
+      return { products: initialProducts, movements: initialMovements };
+    }
+
+    return parsed;
+  } catch {
+    return { products: initialProducts, movements: initialMovements };
+  }
+}
+
 /**
  * Provider pour la gestion centralisée du stock
  */
 export function StockProvider({ children }) {
-  const [products, setProducts] = useState(initialProducts);
-  const [movements, setMovements] = useState(initialMovements);
-  const [nextProductId, setNextProductId] = useState(7);
-  const [nextMovementId, setNextMovementId] = useState(6);
+  const [initialState] = useState(getInitialState);
+  const [products, setProducts] = useState(initialState.products);
+  const [movements, setMovements] = useState(initialState.movements);
+  const [nextProductId, setNextProductId] = useState(() => Math.max(0, ...initialState.products.map(p => p.id)) + 1);
+  const [nextMovementId, setNextMovementId] = useState(() => Math.max(0, ...initialState.movements.map(m => m.id)) + 1);
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ products, movements }));
+  }, [products, movements]);
 
   // Ajouter un produit avec validation
   const addProduct = useCallback((product) => {
@@ -52,7 +80,19 @@ export function StockProvider({ children }) {
 
   // Éditer un produit existant
   const editProduct = useCallback((id, updated) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updated } : p));
+    setProducts(prev => prev.map(p => {
+      if (p.id !== id) {
+        return p;
+      }
+
+      const nextProduct = { ...p, ...updated };
+      return {
+        ...nextProduct,
+        quantity: Number(nextProduct.quantity),
+        minStock: Number(nextProduct.minStock),
+        price: Number(nextProduct.price)
+      };
+    }));
   }, []);
 
   // Supprimer un produit
@@ -73,10 +113,14 @@ export function StockProvider({ children }) {
       throw new Error('Produit non trouvé');
     }
 
+    if (movement.type === 'OUT' && Number(movement.quantity) > product.quantity) {
+      throw new Error('La quantité de sortie dépasse le stock disponible');
+    }
+
     // Calculer la nouvelle quantité
     const newQty = movement.type === 'IN'
       ? product.quantity + Number(movement.quantity)
-      : Math.max(0, product.quantity - Number(movement.quantity));
+      : product.quantity - Number(movement.quantity);
 
     // Mettre à jour la quantité du produit
     editProduct(movement.productId, { quantity: newQty });
@@ -99,6 +143,13 @@ export function StockProvider({ children }) {
   // Calculer les statistiques
   const stats = calculateStats(products);
 
+  const resetDemoData = useCallback(() => {
+    setProducts(initialProducts);
+    setMovements(initialMovements);
+    setNextProductId(7);
+    setNextMovementId(6);
+  }, []);
+
   const value = {
     products,
     movements,
@@ -106,6 +157,7 @@ export function StockProvider({ children }) {
     editProduct,
     deleteProduct,
     addMovement,
+    resetDemoData,
     stats
   };
 

@@ -9,14 +9,21 @@ export default function MovementsPage() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [filterType, setFilterType] = useState('TOUS');
+  const [error, setError] = useState(null);
 
   const filtered = movements.filter(m => filterType === 'TOUS' || m.type === filterType);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    addMovement({ ...form, productId: Number(form.productId), quantity: Number(form.quantity) });
-    setShowModal(false);
-    setForm(emptyForm);
+    setError(null);
+
+    try {
+      addMovement({ ...form, productId: Number(form.productId), quantity: Number(form.quantity) });
+      setShowModal(false);
+      setForm(emptyForm);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const totalIn = movements.filter(m => m.type === 'IN').reduce((s, m) => s + m.quantity, 0);
@@ -30,7 +37,7 @@ export default function MovementsPage() {
           <h2 className="text-2xl font-bold text-slate-800">Mouvements de Stock</h2>
           <p className="text-slate-500 text-sm mt-1">{movements.length} opérations enregistrées</p>
         </div>
-        <button onClick={() => setShowModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm shadow-blue-200 transition-colors">
+        <button onClick={() => { setShowModal(true); setError(null); }} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm shadow-blue-200 transition-colors">
           <Plus size={18} /> Nouveau Mouvement
         </button>
       </div>
@@ -116,6 +123,11 @@ export default function MovementsPage() {
               <button onClick={() => setShowModal(false)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1.5">Produit *</label>
                 <select required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 cursor-pointer" value={form.productId} onChange={e => setForm(f => ({ ...f, productId: e.target.value }))}>
@@ -148,7 +160,7 @@ export default function MovementsPage() {
                 <input className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} placeholder="ex: Vente client #C120" />
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-colors">Annuler</button>
+                <button type="button" onClick={() => { setShowModal(false); setError(null); }} className="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-colors">Annuler</button>
                 <button type="submit" className={`flex-1 text-white py-2.5 rounded-xl font-semibold text-sm transition-colors ${form.type === 'IN' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-600 hover:bg-rose-700'}`}>Confirmer</button>
               </div>
             </form>

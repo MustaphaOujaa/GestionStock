@@ -2,6 +2,10 @@
 
 Une application web moderne et performante pour gérer votre inventaire en temps réel avec une interface intuitive et réactive.
 
+## Aperçu
+
+StockPro est une application React/Vite pour suivre un catalogue produits, contrôler les niveaux de stock et enregistrer les entrées/sorties. Les données sont conservées localement dans le navigateur grâce à `localStorage`, ce qui permet de continuer à travailler après un rafraîchissement de page.
+
 ## 🚀 Fonctionnalités
 
 ✨ **Dashboard Intelligent**
@@ -21,6 +25,12 @@ Une application web moderne et performante pour gérer votre inventaire en temps
 - Historique détaillé de tous les mouvements
 - Traçabilité avec date, utilisateur et notes
 - Mises à jour automatiques des quantités
+- Protection contre les sorties supérieures au stock disponible
+
+💾 **Persistance Locale**
+- Sauvegarde automatique des produits et mouvements dans le navigateur
+- Restauration des données au prochain chargement
+- Réinitialisation rapide vers les données de démonstration
 
 🎨 **Interface Moderne**
 - Design responsive et mobile-first
@@ -50,7 +60,7 @@ Une application web moderne et performante pour gérer votre inventaire en temps
 
 ```bash
 # Cloner le projet
-git clone https://github.com/votre-utilisateur/gestionstock.git
+git clone https://github.com/MustaphaOujaa/GestionStock.git
 cd gestionstock
 
 # Installer les dépendances

@@ -3,7 +3,7 @@ import { StockProvider, useStock } from './context/StockContext'
 import DashboardPage from './pages/DashboardPage'
 import ProductsPage from './pages/ProductsPage'
 import MovementsPage from './pages/MovementsPage'
-import { LayoutDashboard, Package, ArrowRightLeft, Settings, Bell, Search, Menu, X, AlertTriangle } from 'lucide-react'
+import { LayoutDashboard, Package, ArrowRightLeft, RotateCcw, Bell, Search, Menu, X, AlertTriangle } from 'lucide-react'
 
 const navItems = [
   { id: 'dashboard',  label: 'Tableau de Bord', icon: LayoutDashboard },
@@ -14,7 +14,7 @@ const navItems = [
 function AppInner() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { stats } = useStock()
+  const { stats, resetDemoData } = useStock()
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -70,9 +70,9 @@ function AppInner() {
 
         {/* Footer */}
         <div className="p-3 border-t border-slate-800">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white text-sm font-semibold transition-colors">
-            <Settings size={19} />
-            Paramètres
+          <button onClick={resetDemoData} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white text-sm font-semibold transition-colors">
+            <RotateCcw size={19} />
+            Réinitialiser
           </button>
         </div>
       </aside>
