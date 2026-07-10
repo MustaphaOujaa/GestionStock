@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { useStock } from '../hooks/useStock.js';
-import { Package, TrendingUp, TrendingDown, AlertTriangle, BarChart2, ArrowUpCircle, ArrowDownCircle, Layers3 } from 'lucide-react';
+import { Package, TrendingUp, TrendingDown, AlertTriangle, BarChart2, ArrowUpCircle, ArrowDownCircle, Layers3, Activity } from 'lucide-react';
 import { formatPrice } from '../utils/index.js';
+import ActivityHeatmap from '../components/ActivityHeatmap.jsx';
 
 export default function DashboardPage({ setActiveTab }) {
   const { stats, movements, products, settings } = useStock();
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   const quickActions = [
     { id: 'products', icon: Package, title: 'Catalogue', subtitle: 'Gérer les produits', target: 'products' },
@@ -32,7 +35,25 @@ export default function DashboardPage({ setActiveTab }) {
           <h2 className="text-2xl font-bold text-slate-800">Tableau de Bord</h2>
           <p className="text-sm text-slate-400 mt-1">{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
         </div>
+        <button
+          onClick={() => setShowHeatmap(v => !v)}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
+            showHeatmap
+              ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-200'
+              : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-400 hover:text-emerald-600 hover:shadow-sm'
+          }`}
+        >
+          <Activity size={16} />
+          {showHeatmap ? 'Masquer l\'activité' : 'Voir l\'activité'}
+        </button>
       </div>
+
+      {/* Activity Heatmap */}
+      {showHeatmap && (
+        <div className="mb-8">
+          <ActivityHeatmap movements={movements} />
+        </div>
+      )}
 
       {/* Quick Action Squares */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
