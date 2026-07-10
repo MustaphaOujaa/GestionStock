@@ -306,6 +306,108 @@ export function answerInventoryQuestion(prompt, products, movements, stats, curr
 }
 
 /**
+ * Calculer le taux de rotation du stock
+ * @param {Array} products - Liste des produits
+ * @param {Array} movements - Historique des mouvements
+ * @returns {number} Taux de rotation (0-100)
+ */
+export function calculateTurnoverRate(products, movements) {
+  const totalStock = products.reduce((sum, p) => sum + p.quantity, 0);
+  const totalOutgoing = movements
+    .filter(m => m.type === 'OUT')
+    .reduce((sum, m) => sum + m.quantity, 0);
+  
+  if (totalStock === 0) return 0;
+  return Math.min(100, Math.round((totalOutgoing / totalStock) * 100));
+}
+
+/**
+ * Grouper les produits par fournisseur avec statistiques
+ * @param {Array} products - Liste des produits
+ * @returns {Array} Résumé par fournisseur [{supplier, count, totalValue, totalStock}]
+ */
+export function groupBySupplier(products) {
+  const groups = products.reduce((acc, product) => {
+    const key = product.supplier || 'Non spécifié';
+    if (!acc[key]) {
+      acc[key] = { supplier: key, count: 0, totalValue: 0, totalStock: 0 };
+    }
+    acc[key].count += 1;
+    acc[key].totalValue += product.price * product.quantity;
+    acc[key].totalStock += product.quantity;
+    return acc;
+  }, {});
+
+  return Object.values(groups).sort((a, b) => b.totalValue - a.totalValue);
+}
+
+/**
+ * Trouver les produits les plus mouvementés
+ * @param {Array} products - Liste des produits
+ * @param {Array} movements - Historique des mouvements
+ * @param {number} limit - Nombre max de résultats
+ * @returns {Array} Produits triés par volume de mouvements
+ */
+export function getMostMovedProducts(products, movements, limit = 5) {
+  const volumeMap = movements.reduce((acc, m) => {
+    acc[m.productId] = (acc[m.productId] || 0) + m.quantity;
+    return acc;
+  }, {});
+
+  return products
+    .map(p => ({
+      ...p,
+      totalMoved: volumeMap[p.id] || 0,
+      inCount: movements.filter(m => m.productId === p.id && m.type === 'IN').reduce((s, m) => s + m.quantity, 0),
+      outCount: movements.filter(m => m.productId === p.id && m.type === 'OUT').reduce((s, m) => s + m.quantity, 0)
+    }))
+    .filter(p => p.totalMoved > 0)
+    .sort((a, b) => b.totalMoved - a.totalMoved)
+    .slice(0, limit);
+}
+
+/**
+ * Calculer la valeur du stock par catégorie
+ * @param {Array} products - Liste des produits
+ * @returns {Array} [{category, value, count, percentage}]
+ */
+export function getValueByCategory(products) {
+  const totalValue = products.reduce((sum, p) => sum + p.price * p.quantity, 0);
+  const groups = products.reduce((acc, p) => {
+    if (!acc[p.category]) {
+      acc[p.category] = { category: p.category, value: 0, count: 0 };
+    }
+    acc[p.category].value += p.price * p.quantity;
+    acc[p.category].count += 1;
+    return acc;
+  }, {});
+
+  return Object.values(groups)
+    .map(g => ({ ...g, percentage: totalValue > 0 ? Math.round((g.value / totalValue) * 100) : 0 }))
+    .sort((a, b) => b.value - a.value);
+}
+
+/**
+ * Formater un nombre avec séparateurs de milliers
+ * @param {number} num - Nombre à formater
+ * @returns {string} Nombre formaté
+ */
+export function formatNumber(num) {
+  return new Intl.NumberFormat('fr-FR').format(num);
+}
+
+/**
+ * Calculer le pourcentage de produits en alerte
+ * @param {Array} products - Liste des produits
+ * @returns {number} Pourcentage (0-100)
+ */
+export function getAlertRate(products) {
+  if (products.length === 0) return 0;
+  const alertCount = products.filter(p => p.quantity <= p.minStock).length;
+  return Math.round((alertCount / products.length) * 100);
+}
+
+/**
  * Calculer les statistiques du stock
  * @param {Array} products - Liste de produits
  * @returns {Object} Statistiques

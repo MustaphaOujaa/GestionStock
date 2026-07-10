@@ -4,14 +4,16 @@ import { useStock } from './hooks/useStock.js'
 import DashboardPage from './pages/DashboardPage'
 import ProductsPage from './pages/ProductsPage'
 import MovementsPage from './pages/MovementsPage'
+import ReportsPage from './pages/ReportsPage'
 import AiAssistantPage from './pages/AiAssistantPage'
 import SettingsPage from './pages/SettingsPage'
-import { LayoutDashboard, Package, ArrowRightLeft, RotateCcw, Bell, Search, Menu, X, AlertTriangle, Settings, Bot } from 'lucide-react'
+import { LayoutDashboard, Package, ArrowRightLeft, BarChart2, RotateCcw, Bell, Search, Menu, X, AlertTriangle, Settings, Bot } from 'lucide-react'
 
 const navItems = [
   { id: 'dashboard',  label: 'Tableau de Bord', icon: LayoutDashboard },
   { id: 'products',   label: 'Produits',         icon: Package },
   { id: 'movements',  label: 'Mouvements',        icon: ArrowRightLeft },
+  { id: 'reports',    label: 'Rapports',          icon: BarChart2 },
   { id: 'ai',          label: 'Assistant IA',      icon: Bot },
   { id: 'settings',   label: 'Paramètres',        icon: Settings },
 ]
@@ -177,6 +179,7 @@ function AppInner() {
           {activeTab === 'dashboard' && <DashboardPage setActiveTab={setActiveTab} />}
           {activeTab === 'products' && <ProductsPage />}
           {activeTab === 'movements' && <MovementsPage />}
+          {activeTab === 'reports' && <ReportsPage />}
           {activeTab === 'ai' && <AiAssistantPage />}
           {activeTab === 'settings' && <SettingsPage />}
         </div>

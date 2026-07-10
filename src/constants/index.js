@@ -77,3 +77,41 @@ export const MAX_PRODUCT_VALUES = {
   price: 999999999,
   supplier: 100
 };
+
+/** Devises supportées par l'application */
+export const SUPPORTED_CURRENCIES = [
+  { code: 'MAD', label: 'MAD - Dirham marocain', symbol: 'DH' },
+  { code: 'EUR', label: 'EUR - Euro', symbol: '€' },
+  { code: 'USD', label: 'USD - Dollar', symbol: '$' },
+  { code: 'GBP', label: 'GBP - Livre sterling', symbol: '£' },
+  { code: 'TND', label: 'TND - Dinar tunisien', symbol: 'DT' }
+];
+
+/** Configuration des couleurs par priorité */
+export const PRIORITY_COLORS = {
+  Critique: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200' },
+  Haute: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' },
+  Moyenne: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200' },
+  Basse: { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' }
+};
+
+/** Période de rétention par défaut des mouvements (jours) */
+export const DEFAULT_RETENTION_DAYS = 365;
+
+/** Version de l'application */
+export const APP_VERSION = '1.2.0';
+
+/** Nombre maximum de produits par page dans les tableaux */
+export const ITEMS_PER_PAGE = 20;
+
+/** Raccourcis clavier de l'application */
+export const KEYBOARD_SHORTCUTS = {
+  SEARCH: { key: 'k', modifier: 'ctrl', label: 'Rechercher' },
+  NEW_PRODUCT: { key: 'n', modifier: 'ctrl', label: 'Nouveau produit' },
+  DASHBOARD: { key: '1', modifier: 'alt', label: 'Tableau de bord' },
+  PRODUCTS: { key: '2', modifier: 'alt', label: 'Produits' },
+  MOVEMENTS: { key: '3', modifier: 'alt', label: 'Mouvements' },
+  REPORTS: { key: '4', modifier: 'alt', label: 'Rapports' },
+  AI: { key: '5', modifier: 'alt', label: 'Assistant IA' },
+  SETTINGS: { key: '6', modifier: 'alt', label: 'Paramètres' }
+};
