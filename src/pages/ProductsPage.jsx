@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useStock } from '../context/StockContext';
-import { Plus, Search, Edit2, Trash2, X, AlertTriangle, PackageX } from 'lucide-react';
+import { useStock } from '../hooks/useStock.js';
+import { Plus, Search, Edit2, Trash2, X, AlertTriangle, PackageX, Download, ArrowUpDown } from 'lucide-react';
 import { PRODUCT_CATEGORIES, EMPTY_PRODUCT_FORM, STOCK_STATUS_INFO } from '../constants/index.js';
-import { getStockStatus, formatPrice } from '../utils/index.js';
+import { getStockStatus, formatPrice, sortProducts, exportRowsToCsv } from '../utils/index.js';
 
 export default function ProductsPage() {
   const { products, addProduct, editProduct, deleteProduct } = useStock();
@@ -13,12 +13,33 @@ export default function ProductsPage() {
   const [form, setForm] = useState(EMPTY_PRODUCT_FORM);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [error, setError] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ by: 'name', order: 'asc' });
 
-  const filtered = products.filter(p => {
+  const filtered = sortProducts(products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.ref.toLowerCase().includes(search.toLowerCase());
     const matchCat = filterCat === 'Tous' || p.category === filterCat;
     return matchSearch && matchCat;
-  });
+  }), sortConfig.by, sortConfig.order);
+
+  const updateSort = (by) => {
+    setSortConfig(current => ({
+      by,
+      order: current.by === by && current.order === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const exportProducts = () => {
+    exportRowsToCsv('stockpro-produits.csv', filtered.map(product => ({
+      reference: product.ref,
+      nom: product.name,
+      categorie: product.category,
+      quantite: product.quantity,
+      stock_minimum: product.minStock,
+      prix_dh: product.price,
+      fournisseur: product.supplier,
+      statut: getStatusDisplay(product).label
+    })));
+  };
 
   const openAdd = () => { 
     setEditing(null); 
@@ -69,9 +90,14 @@ export default function ProductsPage() {
           <h2 className="text-2xl font-bold text-slate-800">Catalogue Produits</h2>
           <p className="text-slate-500 text-sm mt-1">{products.length} produits enregistrés</p>
         </div>
-        <button onClick={openAdd} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm shadow-blue-200 transition-colors">
-          <Plus size={18} /> Nouveau Produit
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button onClick={exportProducts} disabled={filtered.length === 0} className="border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition-colors">
+            <Download size={18} /> Export CSV
+          </button>
+          <button onClick={openAdd} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm shadow-blue-200 transition-colors">
+            <Plus size={18} /> Nouveau Produit
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -92,11 +118,21 @@ export default function ProductsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="text-left px-6 py-4 font-semibold text-slate-500">Référence</th>
-                <th className="text-left px-6 py-4 font-semibold text-slate-500">Produit</th>
-                <th className="text-left px-6 py-4 font-semibold text-slate-500">Catégorie</th>
-                <th className="text-right px-6 py-4 font-semibold text-slate-500">Stock</th>
-                <th className="text-right px-6 py-4 font-semibold text-slate-500">Prix (DH)</th>
+                <th className="text-left px-6 py-4 font-semibold text-slate-500">
+                  <button onClick={() => updateSort('ref')} className="inline-flex items-center gap-1 hover:text-slate-800">Référence <ArrowUpDown size={13} /></button>
+                </th>
+                <th className="text-left px-6 py-4 font-semibold text-slate-500">
+                  <button onClick={() => updateSort('name')} className="inline-flex items-center gap-1 hover:text-slate-800">Produit <ArrowUpDown size={13} /></button>
+                </th>
+                <th className="text-left px-6 py-4 font-semibold text-slate-500">
+                  <button onClick={() => updateSort('category')} className="inline-flex items-center gap-1 hover:text-slate-800">Catégorie <ArrowUpDown size={13} /></button>
+                </th>
+                <th className="text-right px-6 py-4 font-semibold text-slate-500">
+                  <button onClick={() => updateSort('quantity')} className="inline-flex items-center gap-1 hover:text-slate-800">Stock <ArrowUpDown size={13} /></button>
+                </th>
+                <th className="text-right px-6 py-4 font-semibold text-slate-500">
+                  <button onClick={() => updateSort('price')} className="inline-flex items-center gap-1 hover:text-slate-800">Prix (DH) <ArrowUpDown size={13} /></button>
+                </th>
                 <th className="text-center px-6 py-4 font-semibold text-slate-500">Statut</th>
                 <th className="text-center px-6 py-4 font-semibold text-slate-500">Actions</th>
               </tr>

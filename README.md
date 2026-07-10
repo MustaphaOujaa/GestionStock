@@ -12,6 +12,8 @@ StockPro est une application React/Vite pour suivre un catalogue produits, contr
 - Vue d'ensemble complète de votre stock
 - Statistiques en temps réel (valeur totale, ruptures, stock bas)
 - Alertes visuelles pour les produits critiques
+- Répartition du stock par catégorie
+- Liste de priorités pour les produits à réapprovisionner
 
 📊 **Gestion des Produits**
 - CRUD complet (Créer, Lire, Mettre à jour, Supprimer)
@@ -19,6 +21,8 @@ StockPro est une application React/Vite pour suivre un catalogue produits, contr
 - Gestion des seuils de stock minimal
 - Suivi des prix et fournisseurs
 - Recherche et filtrage avancé
+- Tri dynamique des colonnes
+- Export CSV du catalogue filtré
 
 🔄 **Mouvements de Stock**
 - Enregistrement des entrées/sorties
@@ -26,6 +30,7 @@ StockPro est une application React/Vite pour suivre un catalogue produits, contr
 - Traçabilité avec date, utilisateur et notes
 - Mises à jour automatiques des quantités
 - Protection contre les sorties supérieures au stock disponible
+- Export CSV de l'historique filtré
 
 💾 **Persistance Locale**
 - Sauvegarde automatique des produits et mouvements dans le navigateur

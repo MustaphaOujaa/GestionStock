@@ -1,5 +1,5 @@
-import { useStock } from '../context/StockContext';
-import { Package, TrendingUp, TrendingDown, AlertTriangle, BarChart2, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { useStock } from '../hooks/useStock.js';
+import { Package, TrendingUp, TrendingDown, AlertTriangle, BarChart2, ArrowUpCircle, ArrowDownCircle, Layers3 } from 'lucide-react';
 
 export default function DashboardPage({ setActiveTab }) {
   const { stats, movements, products } = useStock();
@@ -13,6 +13,16 @@ export default function DashboardPage({ setActiveTab }) {
   const recentMovements = movements.slice(0, 5);
   const lowStockItems = products.filter(p => p.quantity > 0 && p.quantity < p.minStock);
   const outOfStock = products.filter(p => p.quantity === 0);
+  const categoryStats = Object.entries(
+    products.reduce((acc, product) => {
+      acc[product.category] = (acc[product.category] || 0) + product.quantity;
+      return acc;
+    }, {})
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  const totalUnits = products.reduce((sum, product) => sum + product.quantity, 0);
+  const criticalItems = [...outOfStock, ...lowStockItems].slice(0, 6);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -75,6 +85,60 @@ export default function DashboardPage({ setActiveTab }) {
             </div>
           );
         })}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+        <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm">
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-50">
+            <div>
+              <h3 className="font-bold text-slate-800">Répartition par Catégorie</h3>
+              <p className="text-xs text-slate-400 mt-1">{totalUnits} unités en stock</p>
+            </div>
+            <Layers3 size={18} className="text-slate-300" />
+          </div>
+          <div className="p-6 space-y-4">
+            {categoryStats.length === 0 ? (
+              <p className="text-sm text-slate-400">Aucune donnée disponible</p>
+            ) : categoryStats.map(([category, quantity]) => {
+              const percent = totalUnits > 0 ? Math.round((quantity / totalUnits) * 100) : 0;
+              return (
+                <div key={category}>
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <span className="text-sm font-semibold text-slate-700">{category}</span>
+                    <span className="text-xs font-semibold text-slate-400">{quantity} unités</span>
+                  </div>
+                  <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${percent}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+          <div className="px-6 py-5 border-b border-slate-50">
+            <h3 className="font-bold text-slate-800">Priorités</h3>
+          </div>
+          <div className="p-4 space-y-3">
+            {criticalItems.length === 0 ? (
+              <div className="text-center py-8 text-slate-400">
+                <TrendingUp size={32} className="mx-auto mb-2 text-emerald-300" />
+                <p className="text-sm">Aucun produit critique</p>
+              </div>
+            ) : criticalItems.map(p => (
+              <button key={p.id} onClick={() => setActiveTab('products')} className="w-full flex items-center justify-between gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors text-left">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-slate-800 truncate">{p.name}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Min: {p.minStock}</p>
+                </div>
+                <span className={`text-xs font-bold ${p.quantity === 0 ? 'text-red-600' : 'text-amber-600'}`}>
+                  {p.quantity}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

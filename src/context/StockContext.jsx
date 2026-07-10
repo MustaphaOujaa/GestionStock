@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { StockContext } from './stockContextCore.js';
 import { generateProductRef, formatDate, calculateStats, validateProduct, validateMovement } from '../utils/index.js';
 
-const StockContext = createContext(null);
 const STORAGE_KEY = 'gestionstock:data:v1';
 
 // Données initiales de démonstration
@@ -167,14 +167,3 @@ export function StockProvider({ children }) {
     </StockContext.Provider>
   );
 }
-
-/**
- * Hook pour accéder au contexte du stock
- */
-export const useStock = () => {
-  const context = useContext(StockContext);
-  if (!context) {
-    throw new Error('useStock doit être utilisé à l\'intérieur de StockProvider');
-  }
-  return context;
-};

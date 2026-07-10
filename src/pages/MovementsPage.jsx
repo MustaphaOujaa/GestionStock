@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useStock } from '../context/StockContext';
-import { Plus, X, ArrowDownCircle, ArrowUpCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { useStock } from '../hooks/useStock.js';
+import { Plus, X, ArrowDownCircle, ArrowUpCircle, TrendingUp, TrendingDown, Download } from 'lucide-react';
+import { exportRowsToCsv } from '../utils/index.js';
 
 const emptyForm = { productId: '', type: 'IN', quantity: 1, note: '' };
 
@@ -29,6 +30,17 @@ export default function MovementsPage() {
   const totalIn = movements.filter(m => m.type === 'IN').reduce((s, m) => s + m.quantity, 0);
   const totalOut = movements.filter(m => m.type === 'OUT').reduce((s, m) => s + m.quantity, 0);
 
+  const exportMovements = () => {
+    exportRowsToCsv('stockpro-mouvements.csv', filtered.map(movement => ({
+      date: movement.date,
+      produit: movement.productName,
+      type: movement.type === 'IN' ? 'Entree' : 'Sortie',
+      quantite: movement.quantity,
+      note: movement.note,
+      utilisateur: movement.by
+    })));
+  };
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header */}
@@ -37,9 +49,14 @@ export default function MovementsPage() {
           <h2 className="text-2xl font-bold text-slate-800">Mouvements de Stock</h2>
           <p className="text-slate-500 text-sm mt-1">{movements.length} opérations enregistrées</p>
         </div>
-        <button onClick={() => { setShowModal(true); setError(null); }} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm shadow-blue-200 transition-colors">
-          <Plus size={18} /> Nouveau Mouvement
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button onClick={exportMovements} disabled={filtered.length === 0} className="border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition-colors">
+            <Download size={18} /> Export CSV
+          </button>
+          <button onClick={() => { setShowModal(true); setError(null); }} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm shadow-blue-200 transition-colors">
+            <Plus size={18} /> Nouveau Mouvement
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}

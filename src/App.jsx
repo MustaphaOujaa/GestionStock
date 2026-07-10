@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { StockProvider, useStock } from './context/StockContext'
+import { StockProvider } from './context/StockContext'
+import { useStock } from './hooks/useStock.js'
 import DashboardPage from './pages/DashboardPage'
 import ProductsPage from './pages/ProductsPage'
 import MovementsPage from './pages/MovementsPage'

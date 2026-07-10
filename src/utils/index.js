@@ -157,6 +157,36 @@ export function sortProducts(products, sortBy = 'name', order = 'asc') {
 }
 
 /**
+ * Exporter des lignes au format CSV.
+ * @param {string} filename - Nom du fichier à télécharger
+ * @param {Array} rows - Données à exporter
+ */
+export function exportRowsToCsv(filename, rows) {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return;
+  }
+
+  const headers = Object.keys(rows[0]);
+  const escapeCell = (value) => {
+    const cell = String(value ?? '');
+    return `"${cell.replaceAll('"', '""')}"`;
+  };
+
+  const csv = [
+    headers.join(','),
+    ...rows.map(row => headers.map(header => escapeCell(row[header])).join(','))
+  ].join('\n');
+
+  const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
  * Calculer les statistiques du stock
  * @param {Array} products - Liste de produits
  * @returns {Object} Statistiques
